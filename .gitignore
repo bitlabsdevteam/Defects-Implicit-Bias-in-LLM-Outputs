@@ -1,0 +1,47 @@
+# OS-specific
+.DS_Store
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.cache/
+.pytest_cache/
+.ipynb_checkpoints/
+*.egg-info/
+.eggs/
+build/
+dist/
+
+# Virtual environments
+.venv/
+venv/
+env/
+.env/
+
+# IDE/Editor
+.vscode/
+.idea/
+
+# Logs
+*.log
+
+# Generated datasets and results (keep source templates and scripts tracked)
+# HR hiring generated dataset
+data/HR_hiring.jsonl
+
+# Model outputs and analysis artifacts
+results/**/*.csv
+results/**/*.jsonl
+results/**/*.tsv
+results/**/*.txt
+results/**/*.png
+results/**/*.pdf
+
+# Analysis outputs from HR hiring bias scripts
+hr_hiring_bias_scores.csv
+hr_hiring_skill_bias.csv
+hr_hiring_bias_report.txt
+analysis_scripts/*.png
+analysis_scripts/*.pdf
