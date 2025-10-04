@@ -51,3 +51,4 @@ You can read our paper "BBQ: A Hand-Built Bias Benchmark for Question Answering"
     - RACE-style-format: `question + \n + '(a)' + ans_0 + '(b)' + ans_1 + '(c)' + ans2 + \n + context`
     - ARC-style-format: `context + question + \n + '(a)' + ans_0 + '(b)' + ans_1 + '(c)' + ans2`
 
+# Defects-Implicit-Bias-in-LLM-Outputs
