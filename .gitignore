@@ -20,6 +20,9 @@ venv/
 env/
 .env/
 
+# Environment variables (API keys, secrets)
+.env
+
 # IDE/Editor
 .vscode/
 .idea/
