@@ -72,6 +72,7 @@ class ModelConfig:
     max_retries: int = 3
     retry_delay: float = 1.0
 
+# Method: BBQDataset.__getitem__
 class BBQDataset(Dataset):
     """PyTorch Dataset for BBQ data"""
     
@@ -121,6 +122,21 @@ class BBQDataset(Dataset):
                 'item': item
             }
         
+        elif self.task_type == "multiple_choice":
+            # Multiple-choice shape for RoBERTa
+            context = item.get('context', '')
+            question = item.get('question', '')
+            input_text = f"{context} {question}"
+            
+            return {
+                'input_text': input_text,
+                'answers': [item.get('ans0', ''), item.get('ans1', ''), item.get('ans2', '')],
+                'example_id': item.get('example_id'),
+                'category': item.get('category'),
+                'label': item.get('label'),
+                'item': item
+            }
+        
         else:  # qa
             # For QA models
             context = item.get('context', '')
@@ -136,6 +152,9 @@ class BBQDataset(Dataset):
                 'item': item
             }
 
+# Method: ModelEvaluator.load_model
+# Method: ModelEvaluator.evaluate (dispatcher)
+# Method: ModelEvaluator.evaluate_multiple_choice (new)
 class ModelEvaluator:
     """Main class for evaluating models on BBQ dataset"""
     
@@ -181,13 +200,20 @@ class ModelEvaluator:
                 # Load model based on task type
                 logger.info(f"Loading model (attempt {attempt + 1}/{self.config.max_retries})")
                 if self.config.task_type == "classification":
-                    # For classification tasks (RoBERTa, DeBERTa)
+                    # For classification tasks (DeBERTa, BERT, etc.)
                     self.model = AutoModelForSequenceClassification.from_pretrained(
                         model_path,
                         trust_remote_code=self.config.trust_remote_code,
                         token=hf_token if not self.config.local_model_path else None
                     )
-                    
+                elif self.config.task_type == "multiple_choice":
+                    # For multiple-choice tasks (RoBERTa on BBQ)
+                    from transformers import AutoModelForMultipleChoice
+                    self.model = AutoModelForMultipleChoice.from_pretrained(
+                        model_path,
+                        trust_remote_code=self.config.trust_remote_code,
+                        token=hf_token if not self.config.local_model_path else None
+                    )
                 elif self.config.task_type == "generative":
                     # For generative tasks (T5, UnifiedQA)
                     self.model = AutoModelForSeq2SeqLM.from_pretrained(
@@ -504,6 +530,8 @@ class ModelEvaluator:
             results = self.evaluate_classification(dataset)
         elif self.config.task_type == "generative":
             results = self.evaluate_generative(dataset)
+        elif self.config.task_type == "multiple_choice":
+            results = self.evaluate_multiple_choice(dataset)
         else:
             raise NotImplementedError(f"Task type {self.config.task_type} not implemented")
         
@@ -515,6 +543,7 @@ class ModelEvaluator:
         
         return results
 
+# Method: main (auto-detect task type)
 def main():
     """Main function with command line interface"""
     parser = argparse.ArgumentParser(description="Evaluate LLM models on BBQ dataset")
@@ -559,7 +588,9 @@ def main():
         model_name_lower = args.model.lower()
         if "t5" in model_name_lower or "unifiedqa" in model_name_lower:
             task_type = "generative"
-        elif "roberta" in model_name_lower or "deberta" in model_name_lower or "bert" in model_name_lower:
+        elif "roberta" in model_name_lower:
+            task_type = "multiple_choice"
+        elif "deberta" in model_name_lower or "bert" in model_name_lower:
             task_type = "classification"
         else:
             task_type = "classification"  # Default
